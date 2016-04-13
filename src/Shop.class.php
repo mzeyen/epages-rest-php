@@ -18,6 +18,7 @@ require_once(__DIR__ . "/util/LogLevel.enum.php");
 require_once(__DIR__ . "/util/LogOutput.enum.php");
 require_once(__DIR__ . "/util/RESTClient.class.php");
 # include shopobjects
+require_once(__DIR__ . "/shopobjects/customer/CustomerFilter.class.php");
 require_once(__DIR__ . "/shopobjects/Currencies.class.php");
 require_once(__DIR__ . "/shopobjects/Locales.class.php");
 require_once(__DIR__ . "/shopobjects/date/Date.class.php");
