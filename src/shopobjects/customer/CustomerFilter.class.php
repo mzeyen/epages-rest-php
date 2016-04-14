@@ -42,7 +42,7 @@ class CustomerFilter {
 		if (InputValidator::isArray($customerFilterParameter) &&
 			!InputValidator::isEmptyArray($customerFilterParameter)) {
 
-			$this->setProductFilter($customerFilterParameter);
+			$this->setCustomerFilter($customerFilterParameter);
 		}
 	}
 
@@ -149,7 +149,7 @@ class CustomerFilter {
 	 	if (!InputValidator::isEmptyArrayKey($content, "items") && (sizeof($content['items']) != 0)) {
 
 			foreach ($content['items'] as $item) {
-
+				
 				$customer = new Customer($item);
 				
 				array_push($customers, $customer);
@@ -238,7 +238,7 @@ class CustomerFilter {
 	 * @since 0.1.0 Use a default Locale and Currency.
 	 * @since 0.1.2 Add error reporting.
 	 */
-	public function setProductFilter($customerFilterParameter) {
+	public function setCustomerFilter($customerFilterParameter) {
 
 		$this->errorReset();
 
@@ -348,23 +348,23 @@ class CustomerFilter {
 	 * This function delete a product ID from filter.
 	 *
 	 * @author David Pauli <contact@david-pauli.de>
-	 * @param String $productID	The product ID to unset from filter.
+	 * @param String $customerID	The product ID to unset from filter.
 	 * @return boolean True if unsetting the product ID string works, false if not.
 	 * @since 0.0.0
 	 * @since 0.1.0 Use attribute unstatic.
 	 * @since 0.1.2 Add error reporting.
 	 */
-	public function unsetID($productID) {
+	public function unsetID($customerID) {
 
 		$this->errorReset();
 
-		if (InputValidator::isEmpty($productID)
-			|| !in_array($productID, $this->IDs)) {
+		if (InputValidator::isEmpty($customerID)
+			|| !in_array($customerID, $this->IDs)) {
 
 			return false;
 		}
 
-		unset($this->IDs[array_search($productID, $this->IDs)]);
+		unset($this->IDs[array_search($customerID, $this->IDs)]);
 
 		return true;
 	}

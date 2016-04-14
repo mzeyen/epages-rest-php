@@ -3,7 +3,7 @@
 /**
  * This file represents the Customer class.
  *
- * @author David Pauli <contact@david-pauli.de>
+ * @author Maik Zeyen <maik_zeyen@web.de>
  * @since 0.0.0
  */
 namespace ep6;
@@ -18,6 +18,9 @@ class Customer {
     
     /** @var ProductAttribute[] This array saves all the attributes. */
 	private $attributes = array();
+	
+	/** @var Addressattributes[] This array saves all address attributes. */
+	private $billingAddress = array();
     
     /** @var birthday|null Here the birthday is saved.  */
     private $birthday = null;
@@ -40,43 +43,13 @@ class Customer {
     /** @var customerId|null*/
     private $customerId = null;
     
-    /** @var emailAddress|null Here the email address is saved. */
-    private $emailAddress = null;
-    
-    /** @var firstName| Here the first name is saved. */
-    private $firstName = null;
-    
-    /** @var internalNote|null Here the internal Note is saved. */
-    private $internalNote = null;
-    
-    /** @var lastName|null Here the last name is saved. */
-    private $lastName = null;
-    
-    /** @var salutation@null Here the salutation is saved. */
-    private $salutation = null;
-    
-    /** @var street|null Here the street is saved. */
-    private $street = null;
-    
-    /** @var streetDetails|null Here the street details are saved. */
-    private $streetDetails = null;
-    
-    /** @var title|null Here the title is saved. */
-    private $title = null;
-    
-    /** @var vatId|null Here the vatId is saved. */
-    private $vatId = null;
-    
-    /** @var zipCode|null Here the zipCode is saved. */
-    private $zipCode = null;
-    
     /** @var int Timestamp in ms when the next request needs to be done. */
 	private $NEXT_REQUEST_TIMESTAMP = 0;
     
     	/**
 	 * This is the constructor of the Product.
 	 *
-	 * @author David Pauli <contact@david-pauli.de>
+	 * @author Maik Zeyen <maik_zeyen@web.de>
 	 * @param mixed[]|String $customerParameter The customer to create as array or customer ID.
 	 */
 	public function __construct($customerParameter) {
@@ -85,15 +58,18 @@ class Customer {
 			!InputValidator::isArray($customerParameter)) {
 
 			self::errorSet("P-1");
-			Logger::warning("ep6\Product\nProduct parameter " . $customerParameter . " to create product is invalid.");
+			Logger::warning("ep6\Customer\Customer parameter " . $customerParameter . " to create customer is invalid.");
 			return;
 		}
 
 		if (InputValidator::isArray($customerParameter)) {
+			
+			#echo print_r($customerParameter);
 			$this->parseData($customerParameter);
 		}
 		else {
 			$this->customerID = $customerParameter;
+			$this->firstName  = $customerParameter;
 			$this->reload();
 		}
 	}
@@ -103,28 +79,27 @@ class Customer {
 	 *
 	 * This function returns the setted values of the Customer object.
 	 *
-	 * @author David Pauli <contact@david-pauli.de>
+	 * @author Maik Zeyen <maik_zeyen@web.de>
 	 * @return String The Customer as a string.
 	 * @since 0.1.1
 	 */
 	public function __toString() {
 
 		return "<strong>Customer ID:</strong> " . $this->customerID . "<br/>" .
-				"<strong>First Name:</strong> " . $this->firstName . "<br/>" .
-				"<strong>Surname:</strong> " . $this->Surname . "<br/>" .
+				"<strong>First Name:</strong> " . $this->billingAddress->getLastName() . "<br/>" .
+				"<strong>Last Name:</strong> " . $this->lastName . "<br/>" .
 				"<strong>eMail</strong> " . $this->emailAddress . "<br/>" .
 				"<strong>Address:</strong> " . $this->street . "<br/>" .
 				"<strong>Street details:</strong> " . $this->streetDetails . "<br/>" .
 				"<strong>Postcode:</strong> " . $this->zipCode . "<br/>" .
 				"<strong>Town:</strong> " . $this->city . "<br/>" .
-				"<strong>Country:</strong> " . $this->country . "<br/>" .
-				"<strong>Price:</strong> " . $this->price . "<br/>";
+				"<strong>Country:</strong> " . $this->country . "<br/>";
 	}
 	
 		/**
-	 * Returns the product attributes.
+	 * Returns the customer attributes.
 	 *
-	 * @author David Pauli <contact@david-pauli.de>
+	 * @author Maik Zeyen <maik_zeyen@web.de>
 	 * @return ProductAttributes[] Gets the product attributes in an array.
 	 * @since 0.1.0
 	 * @since 0.1.1 Unstatic every attributes.
@@ -148,104 +123,81 @@ class Customer {
 	/**
 	 * Parses the REST response data and save it.
 	 *
-	 * @author David Pauli <contact@david-pauli.de>
+	 * @author Maik Zeyen <maik_zeyen@web.de>
 	 * @param Array $customerParameter The product in an array.
 	 * @since 0.1.3
 	 */
 	private function parseData($customerParameter) {
+		
+		#echo "parseData: <pre>" . print_r($customerParameter, true) . "</pre>";
 
 		// if the product comes from the shop API
 		if (InputValidator::isArray($customerParameter) &&
 			!InputValidator::isEmptyArrayKey($customerParameter, "customerId")) {
+				
+			$this->customerID = $customerParameter['customerId'];
 
-			$this->productID = $customerParameter['customerId'];
+			
+			if (!InputValidator::isEmptyArrayKey($customerParameter, "billingAddress")) {
 
-			if (!InputValidator::isEmptyArrayKey($customerParameter, "birthday")) {
-
-				$this->birthday = $customerParameter['birthday'];
+				$this->billingAddress = new Address($customerParameter['billingAddress']);
 			}
-
-			if (!InputValidator::isEmptyArrayKey($customerParameter, "city")) {
-
-				$this->city = $customerParameter['city'];
-			}
-
-			if (!InputValidator::isEmptyArrayKey($customerParameter, "company")) {
-
-				$this->company = $customerParameter['company'];
-			}
-
-			if (!InputValidator::isEmptyArrayKey($customerParameter, "country")) {
-
-				$this->country = $customerParameter['country'];
-			}
-
-			if (!InputValidator::isEmptyArrayKey($customerParameter, "creationDate")) {
-
-				$this->creationDate = $customerParameter['creationDate'];
-			}
-
+			
 			if (!InputValidator::isEmptyArrayKey($customerParameter, "customerNumber")) {
 
 				$this->customerNumber = $customerParameter['customerNumber'];
 			}
+			
+			if (!InputValidator::isEmptyArrayKey($customerParameter, "creationDate")) {
 
-			if (!InputValidator::isEmptyArrayKey($customerParameter, "emailAddress")) {
-
-				$this->emailAddress = $customerParameter['emailAddress'];
-			}
-
-			if (!InputValidator::isEmptyArrayKey($customerParameter, "firstName")) {
-
-				$this->firstName = $customerParameter['firstName'];
+				$this->creationDate = $customerParameter['creationDate'];
+				
 			}
 
 			if (!InputValidator::isEmptyArrayKey($customerParameter, "internalNote")) {
 
 				$this->internalNote = $customerParameter['internalNote'];
-			}
-
-			if (!InputValidator::isEmptyArrayKey($customerParameter, "lastName")) {
-
-				$this->lastName = $customerParameter['lastName'];
-			}
-
-			if (!InputValidator::isEmptyArrayKey($customerParameter, "salutation")) {
-
-				$this->salutation = $customerParameter['salutation'];
-			}
-
-			if (!InputValidator::isEmptyArrayKey($customerParameter, "street")) {
-
-				$this->street = $customerParameter['street'];
-			}
-
-			if (!InputValidator::isEmptyArrayKey($customerParameter, "streetDetails")) {
-
-				$this->streetDetails = $customerParameter['streetDetails'];
-			}
-
-			if (!InputValidator::isEmptyArrayKey($customerParameter, "title")) {
-
-				$this->title = $customerParameter['title'];
-			}
-
-			if (!InputValidator::isEmptyArrayKey($customerParameter, "vatId")) {
-
-				$this->vatId = $customerParameter['vatId'];
-			}
-
-			if (!InputValidator::isEmptyArrayKey($customerParameter, "zipCode")) {
-
-				$this->zipCode = $customerParameter['zipCode'];
+				
 			}
 		}
+	}
+	
+	/**
+	 * Loads the customer.
+	 *
+	 * @author Maik Zeyen <maik_zeyen@web.de>
+	 * @since 0.1.2
+	 * @since 0.1.3 Remove data parsing into correct function.
+	 */
+	private function load() {
+
+		// if parameter is wrong or GET is blocked
+		if (!RESTClient::setRequestMethod(HTTPRequestMethod::GET)) {
+
+			self::errorSet("RESTC-9");
+			return;
+		}
+
+		$content = RESTClient::sendWithLocalization(self::RESTPATH . "/" . $this->customerID, Locales::getLocale());
+
+		// if respond is empty
+		if (InputValidator::isEmpty($content)) {
+
+			self::errorSet("PF-8");
+			return;
+		}
+
+		$this->parseData($content);
+
+		// update timestamp when make the next request
+		$timestamp = (int) (microtime(true) * 1000);
+		$this->NEXT_REQUEST_TIMESTAMP = $timestamp + RESTClient::$NEXT_RESPONSE_WAIT_TIME;
 	}
 
  	/**
  	 * This function checks whether a reload is needed.
  	 *
- 	 * @author David Pauli <contact@david-pauli.de>
+ 	 * @author Maik Zeyen <maik_zeyen@web.de>
  	 * @since 0.1.3
  	 */
  	private function reload() {
@@ -259,6 +211,47 @@ class Customer {
 
  		$this->load();
  	}
+ 	
+ 	/**
+	 * Returns the customer number.
+	 *
+	 * @author
+	 * @return String The customer number.
+	 * @since 0.1.3
+	 */
+	public function getNumber() {
+
+		self::errorReset();
+		$this->reload();
+		return $this->customerNumber;
+	}
+	
+	/**
+	 * Returns the creationDate fot the Customer.
+	 *
+	 * @author
+	 * @return String The customer number.
+	 * @since 0.1.3
+	 */
+	public function getCreationDate() {
+
+		self::errorReset();
+		$this->reload();
+		return $this->creationDate;
+	}
+	/**
+	 * Returns the BillingAddress object.
+	 *
+	 * @author
+	 * @return Object The BillingAddress.
+	 * @since 0.1.3
+	 */
+	public function getAddress() {
+
+		self::errorReset();
+		$this->reload();
+		return $this->billingAddress;
+	}
     
 }
 
